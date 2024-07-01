@@ -1,0 +1,41 @@
+isTrusted: true
+altKey: false
+bubbles: true
+button: 0
+buttons: 0
+cancelBubble: false
+cancelable: true
+clientX: 469
+clientY: 703
+composed: true
+ctrlKey: false
+currentTarget: null
+dataTransfer: DataTransfer {dropEffect: 'none', effectAllowed: 'all', items: DataTransferItemList, types: Array(0), files: FileList}
+defaultPrevented: true
+detail: 0
+eventPhase: 0
+fromElement: null
+layerX: 189
+layerY: 332
+metaKey: false
+movementX: 0
+movementY: 0
+offsetX: 189
+offsetY: 332
+pageX: 469
+pageY: 703
+relatedTarget: null
+returnValue: false
+screenX: -1101
+screenY: 1186
+shiftKey: false
+sourceCapabilities: InputDeviceCapabilities {firesTouchEvents: false}
+srcElement: canvas.kix-canvas-tile-content
+target: canvas.kix-canvas-tile-content
+timeStamp: 137846.09999999963
+toElement: canvas.kix-canvas-tile-content
+type: "drop"
+view: Window {0: Window, 1: Window, 2: Window, 3: Window, 4: Window, 5: Window, 6: Window, 7: global, 8: Window, window: Window, self: Window, document: document, name: '', location: Location, …}
+which: 1
+x: 469
+y: 703
