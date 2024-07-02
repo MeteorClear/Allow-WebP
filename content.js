@@ -42,23 +42,7 @@ async function convertWebPToPNG(file, originalEvent) {
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(pngFile);
 
-                // Create drop event
-                const newEvent = new DragEvent('drop', {
-                    bubbles: true,
-                    cancelable: true,
-                    clientX: originalEvent.clientX,
-                    clientY: originalEvent.clientY,
-                    screenX: originalEvent.screenX,
-                    screenY: originalEvent.screenY,
-                    dataTransfer: dataTransfer,
-                    sourceCapabilities: originalEvent.sourceCapabilities
-                });
-    
-                // Set additional properties to mimic the original event
-                Object.defineProperty(newEvent, 'srcElement', { value: originalEvent.srcElement });
-                Object.defineProperty(newEvent, 'target', { value: originalEvent.target });
-                newEvent.dataTransfer.dropEffect = originalEvent.dataTransfer.dropEffect;
-                newEvent.dataTransfer.effectAllowed = originalEvent.dataTransfer.effectAllowed;
+                const newEvent = createNewDropEvent(dataTransfer, originalEvent);
 
                 dispatchDropEvent(newEvent, originalEvent.clientX, originalEvent.clientY);
 
@@ -68,7 +52,31 @@ async function convertWebPToPNG(file, originalEvent) {
     reader.readAsDataURL(file);
 }
 
+function createNewDropEvent(dataTransfer, originalEvent) {
+    console.log("call func : createNewDropEvent :", dataTransfer);
+
+    const newEvent = new DragEvent('drop', {
+        bubbles: true,
+        cancelable: true,
+        clientX: originalEvent.clientX,
+        clientY: originalEvent.clientY,
+        screenX: originalEvent.screenX,
+        screenY: originalEvent.screenY,
+        dataTransfer: dataTransfer,
+        sourceCapabilities: originalEvent.sourceCapabilities
+    });
+
+    Object.defineProperty(newEvent, 'srcElement', { value: originalEvent.srcElement });
+    Object.defineProperty(newEvent, 'target', { value: originalEvent.target });
+    newEvent.dataTransfer.dropEffect = originalEvent.dataTransfer.dropEffect;
+    newEvent.dataTransfer.effectAllowed = originalEvent.dataTransfer.effectAllowed;
+
+    return newEvent;
+}
+
 function dispatchDropEvent(event, clientX, clientY) {
+    console.log("call func : dispatchDropEvent :", event);
+
     const targetElement = document.elementFromPoint(clientX, clientY);
     if (targetElement) {
         targetElement.dispatchEvent(event);
