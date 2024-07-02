@@ -1,12 +1,14 @@
 console.log("content.js load")
 
+document.addEventListener('dragover', handleDragover);
+document.addEventListener('drop', handleDrop);
 
-document.addEventListener('dragover', (event) => {
+function handleDragover(event) {
     console.log("dragover");
     event.preventDefault();
-});
-  
-document.addEventListener('drop', async (event) => {
+}
+
+async function handleDrop(event) {
     console.log("drop event :", event);
 
     const items = event.dataTransfer.items;
@@ -16,58 +18,104 @@ document.addEventListener('drop', async (event) => {
         if (items[i].kind === 'file' && items[i].type === 'image/webp') {
             event.preventDefault();
             const file = items[i].getAsFile();
-            await convertWebPToPNG(file, event);
+            await convertWebP2PNGAndDispatchDrop(file, event);
         }
     }
-});
+}
   
-async function convertWebPToPNG(file, originalEvent) {
+async function convertWebP2PNGAndDispatchDrop(file, originalEvent) {
     console.log("call convert :", file);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            canvas.toBlob(async (blob) => {
-                const pngFile = new File([blob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
+    // read and load webp image
+    const dataURL = await readFile(file);
+    const img = await loadImage(dataURL);
 
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(pngFile);
+    // convert webp to png image
+    const pngBlob = await convertImage2PNGBlob(img);
+    const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
 
-                // Create drop event
-                const newEvent = new DragEvent('drop', {
-                    bubbles: true,
-                    cancelable: true,
-                    clientX: originalEvent.clientX,
-                    clientY: originalEvent.clientY,
-                    screenX: originalEvent.screenX,
-                    screenY: originalEvent.screenY,
-                    dataTransfer: dataTransfer,
-                    sourceCapabilities: originalEvent.sourceCapabilities
-                });
-    
-                // Set additional properties to mimic the original event
-                Object.defineProperty(newEvent, 'srcElement', { value: originalEvent.srcElement });
-                Object.defineProperty(newEvent, 'target', { value: originalEvent.target });
-                newEvent.dataTransfer.dropEffect = originalEvent.dataTransfer.dropEffect;
-                newEvent.dataTransfer.effectAllowed = originalEvent.dataTransfer.effectAllowed;
-    
-                // Find the target element
-                const targetElement = document.elementFromPoint(originalEvent.clientX, originalEvent.clientY);
-    
-                // Dispatch the event to the target element
-                if (targetElement) {
-                    targetElement.dispatchEvent(newEvent);
-                }
-            }, 'image/png');
-        };
-    };
-    reader.readAsDataURL(file);
+    // create and dispatch event based on original event information and converted image
+    const dataTransfer = createDataTransfer(pngFile);
+    const newEvent = createNewDropEvent(dataTransfer, originalEvent);
+    dispatchDropEvent(newEvent, originalEvent.clientX, originalEvent.clientY);
 }
 
+function readFile(file) {
+    return new Promise((resolve, reject) => {
+        console.log("call func : readFile :", file);
+
+        const reader = new FileReader();
+
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+function loadImage(dataURL) {
+    return new Promise((resolve, reject) => {
+        console.log("call func : loadImage :", dataURL);
+
+        const image = new Image();
+
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = dataURL;
+    });
+}
+
+function convertImage2PNGBlob(image) {
+    return new Promise((resolve, reject) => {
+        console.log("call func : convertImage2PNGBlob :", image);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0);
+
+        canvas.toBlob((blob) => resolve(blob), 'image/png');
+    });
+}
+
+function createDataTransfer(file) {
+    console.log("call func : createDataTransfer :", file);
+
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+
+    return dataTransfer;
+}
+
+function createNewDropEvent(dataTransfer, originalEvent) {
+    console.log("call func : createNewDropEvent :", dataTransfer);
+
+    const newEvent = new DragEvent('drop', {
+        bubbles: true,
+        cancelable: true,
+        clientX: originalEvent.clientX,
+        clientY: originalEvent.clientY,
+        screenX: originalEvent.screenX,
+        screenY: originalEvent.screenY,
+        dataTransfer: dataTransfer,
+        sourceCapabilities: originalEvent.sourceCapabilities
+    });
+
+    Object.defineProperty(newEvent, 'srcElement', { value: originalEvent.srcElement });
+    Object.defineProperty(newEvent, 'target', { value: originalEvent.target });
+
+    newEvent.dataTransfer.dropEffect = originalEvent.dataTransfer.dropEffect;
+    newEvent.dataTransfer.effectAllowed = originalEvent.dataTransfer.effectAllowed;
+
+    return newEvent;
+}
+
+function dispatchDropEvent(event, clientX, clientY) {
+    console.log("call func : dispatchDropEvent :", event);
+
+    const targetElement = document.elementFromPoint(clientX, clientY);
+    if (targetElement) {
+        targetElement.dispatchEvent(event);
+    }
+}
