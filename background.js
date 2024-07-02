@@ -1,4 +1,3 @@
-/* 
- * background.js
- * Not used for now
- */
+chrome.runtime.onInstalled.addListener(() => {
+    console.log("Project W installed");
+});
