@@ -26,22 +26,30 @@ async function handleDrop(event) {
 async function convertWebPToPNG(file, originalEvent) {
     console.log("call convert :", file);
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
+    // read and load webp image
+    const dataURL = await readFile(file);
+    const img = await loadImage(dataURL);
 
-        const img = await loadImage(e.target.result);
+    // convert webp to png image
+    const pngBlob = await convertImage2PNGBlob(img);
+    const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
 
-        const pngBlob = await convertImage2PNGBlob(img);
+    // create and dispatch event based on original event information and converted image
+    const dataTransfer = createDataTransfer(pngFile);
+    const newEvent = createNewDropEvent(dataTransfer, originalEvent);
+    dispatchDropEvent(newEvent, originalEvent.clientX, originalEvent.clientY);
+}
 
-        const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
+function readFile(file) {
+    return new Promise((resolve, reject) => {
+        console.log("call func : readFile :", file);
 
-        const dataTransfer = createDataTransfer(pngFile);
+        const reader = new FileReader();
 
-        const newEvent = createNewDropEvent(dataTransfer, originalEvent);
-
-        dispatchDropEvent(newEvent, originalEvent.clientX, originalEvent.clientY);
-    };
-    reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
 }
 
 function loadImage(dataURL) {
