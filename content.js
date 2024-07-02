@@ -27,27 +27,37 @@ async function convertWebPToPNG(file, originalEvent) {
     console.log("call convert :", file);
 
     const reader = new FileReader();
-    reader.onload = (e) => {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = async () => {
-            
-            const pngBlob = await convertImage2PNGBlob(img);
+    reader.onload = async (e) => {
 
-            const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
+        const img = await loadImage(e.target.result);
 
-            const dataTransfer = createDataTransfer(pngFile);
+        const pngBlob = await convertImage2PNGBlob(img);
 
-            const newEvent = createNewDropEvent(dataTransfer, originalEvent);
+        const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
 
-            dispatchDropEvent(newEvent, originalEvent.clientX, originalEvent.clientY);
-        };
+        const dataTransfer = createDataTransfer(pngFile);
+
+        const newEvent = createNewDropEvent(dataTransfer, originalEvent);
+
+        dispatchDropEvent(newEvent, originalEvent.clientX, originalEvent.clientY);
     };
     reader.readAsDataURL(file);
 }
 
+function loadImage(dataURL) {
+    return new Promise((resolve, reject) => {
+        console.log("call func : loadImage :", dataURL);
+
+        const image = new Image();
+
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = dataURL;
+    });
+}
+
 function convertImage2PNGBlob(image) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         console.log("call func : convertImage2PNGBlob :", image);
 
         const canvas = document.createElement('canvas');
@@ -86,7 +96,7 @@ function createNewDropEvent(dataTransfer, originalEvent) {
 
     Object.defineProperty(newEvent, 'srcElement', { value: originalEvent.srcElement });
     Object.defineProperty(newEvent, 'target', { value: originalEvent.target });
-    
+
     newEvent.dataTransfer.dropEffect = originalEvent.dataTransfer.dropEffect;
     newEvent.dataTransfer.effectAllowed = originalEvent.dataTransfer.effectAllowed;
 
