@@ -18,12 +18,12 @@ async function handleDrop(event) {
         if (items[i].kind === 'file' && items[i].type === 'image/webp') {
             event.preventDefault();
             const file = items[i].getAsFile();
-            await convertWebPToPNG(file, event);
+            await convertWebP2PNGAndDispatchDrop(file, event);
         }
     }
 }
   
-async function convertWebPToPNG(file, originalEvent) {
+async function convertWebP2PNGAndDispatchDrop(file, originalEvent) {
     console.log("call convert :", file);
 
     // read and load webp image
