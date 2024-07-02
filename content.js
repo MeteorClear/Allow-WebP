@@ -1,12 +1,14 @@
 console.log("content.js load")
 
+document.addEventListener('dragover', handleDragover);
+document.addEventListener('drop', handleDrop);
 
-document.addEventListener('dragover', (event) => {
+function handleDragover(event) {
     console.log("dragover");
     event.preventDefault();
-});
-  
-document.addEventListener('drop', async (event) => {
+}
+
+async function handleDrop(event) {
     console.log("drop event :", event);
 
     const items = event.dataTransfer.items;
@@ -19,7 +21,7 @@ document.addEventListener('drop', async (event) => {
             await convertWebPToPNG(file, event);
         }
     }
-});
+}
   
 async function convertWebPToPNG(file, originalEvent) {
     console.log("call convert :", file);
