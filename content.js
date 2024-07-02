@@ -39,8 +39,7 @@ async function convertWebPToPNG(file, originalEvent) {
             canvas.toBlob(async (blob) => {
                 const pngFile = new File([blob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
 
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(pngFile);
+                const dataTransfer = createDataTransfer(pngFile);
 
                 const newEvent = createNewDropEvent(dataTransfer, originalEvent);
 
@@ -50,6 +49,13 @@ async function convertWebPToPNG(file, originalEvent) {
         };
     };
     reader.readAsDataURL(file);
+}
+
+function createDataTransfer(file) {
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+
+    return dataTransfer;
 }
 
 function createNewDropEvent(dataTransfer, originalEvent) {
