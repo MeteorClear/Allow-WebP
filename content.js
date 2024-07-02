@@ -59,17 +59,18 @@ async function convertWebPToPNG(file, originalEvent) {
                 Object.defineProperty(newEvent, 'target', { value: originalEvent.target });
                 newEvent.dataTransfer.dropEffect = originalEvent.dataTransfer.dropEffect;
                 newEvent.dataTransfer.effectAllowed = originalEvent.dataTransfer.effectAllowed;
-    
-                // Find the target element
-                const targetElement = document.elementFromPoint(originalEvent.clientX, originalEvent.clientY);
-    
-                // Dispatch the event to the target element
-                if (targetElement) {
-                    targetElement.dispatchEvent(newEvent);
-                }
+
+                dispatchDropEvent(newEvent, originalEvent.clientX, originalEvent.clientY);
+
             }, 'image/png');
         };
     };
     reader.readAsDataURL(file);
 }
 
+function dispatchDropEvent(event, clientX, clientY) {
+    const targetElement = document.elementFromPoint(clientX, clientY);
+    if (targetElement) {
+        targetElement.dispatchEvent(event);
+    }
+}
