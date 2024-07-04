@@ -1,19 +1,13 @@
-console.log("content.js load")
+//console.log("content.js load")
 
-document.addEventListener('dragover', handleDragover);
 document.addEventListener('drop', handleDrop);
 
-function handleDragover(event) {
-    console.log("dragover");
-    event.preventDefault();
-}
-
 async function handleDrop(event) {
-    console.log("drop event :", event);
+    //console.log("drop event :", event);
 
     const items = event.dataTransfer.items;
     for (let i = 0; i < items.length; i++) {
-        console.log("item :", items[i]);
+        //console.log("item :", items[i]);
 
         if (items[i].kind === 'file' && items[i].type === 'image/webp') {
             event.preventDefault();
@@ -24,7 +18,7 @@ async function handleDrop(event) {
 }
   
 async function convertWebP2PNGAndDispatchDrop(file, originalEvent) {
-    console.log("call convert :", file);
+    //console.log("call convert :", file);
 
     // read and load webp image
     const dataURL = await readFile(file);
@@ -42,7 +36,7 @@ async function convertWebP2PNGAndDispatchDrop(file, originalEvent) {
 
 function readFile(file) {
     return new Promise((resolve, reject) => {
-        console.log("call func : readFile :", file);
+        //console.log("call func : readFile :", file);
 
         const reader = new FileReader();
 
@@ -54,7 +48,7 @@ function readFile(file) {
 
 function loadImage(dataURL) {
     return new Promise((resolve, reject) => {
-        console.log("call func : loadImage :", dataURL);
+        //console.log("call func : loadImage :", dataURL);
 
         const image = new Image();
 
@@ -66,7 +60,7 @@ function loadImage(dataURL) {
 
 function convertImage2PNGBlob(image) {
     return new Promise((resolve, reject) => {
-        console.log("call func : convertImage2PNGBlob :", image);
+        //console.log("call func : convertImage2PNGBlob :", image);
 
         const canvas = document.createElement('canvas');
         canvas.width = image.width;
@@ -80,7 +74,7 @@ function convertImage2PNGBlob(image) {
 }
 
 function createDataTransfer(file) {
-    console.log("call func : createDataTransfer :", file);
+    //console.log("call func : createDataTransfer :", file);
 
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(file);
@@ -89,7 +83,7 @@ function createDataTransfer(file) {
 }
 
 function createNewDropEvent(dataTransfer, originalEvent) {
-    console.log("call func : createNewDropEvent :", dataTransfer);
+    //console.log("call func : createNewDropEvent :", dataTransfer);
 
     const newEvent = new DragEvent('drop', {
         bubbles: true,
@@ -112,7 +106,7 @@ function createNewDropEvent(dataTransfer, originalEvent) {
 }
 
 function dispatchDropEvent(event, clientX, clientY) {
-    console.log("call func : dispatchDropEvent :", event);
+    //console.log("call func : dispatchDropEvent :", event);
 
     const targetElement = document.elementFromPoint(clientX, clientY);
     if (targetElement) {
