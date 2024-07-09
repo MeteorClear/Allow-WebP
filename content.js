@@ -3,6 +3,7 @@
 
 // Register event listeners
 document.addEventListener('drop', handleDrop);
+document.addEventListener('paste', handlePaste);
 
 
 /**
@@ -174,3 +175,56 @@ function dispatchDropEvent(event, clientX, clientY) {
     }
 }
 
+
+
+
+async function handlePaste(event) {
+    console.log("paste event :", event, typeof(event));
+
+    const items = event.clipboardData.items
+    for (let i = 0; i < items.length; i++) {
+        console.log("item :", items[i]);
+
+        if (items[i].kind === 'file' && items[i].type === 'image/webp') {
+            event.preventDefault();
+            const file = items[i].getAsFile();
+            await convertWebP2PNGAndDispatchPaste(file, event);
+        }
+    }
+}
+
+async function convertWebP2PNGAndDispatchPaste(file, originalEvent) {
+    console.log("call convert :", file);
+}
+
+
+
+
+/*
+// for check events change
+const allEvents = [
+    'abort', 'animationend', 'animationiteration', 'animationstart', 'beforeinput',
+    'canplay', 'canplaythrough', 'change', 'click', 'close', 'contextmenu',
+    'cuechange', 'dblclick', 'drag', 'dragend', 'dragenter', 'dragleave', 'dragover',
+    'dragstart', 'drop', 'durationchange', 'emptied', 'ended', 'error',
+    'gotpointercapture', 'input', 'invalid', 'keydown', 
+    'keypress', 'keyup', 'load', 'loadeddata', 'loadedmetadata', 'loadstart', 'lostpointercapture', 
+    'pause', 'play', 'playing', 'pointercancel',
+    'progress', 'paste',
+    'ratechange', 'reset', 'resize', 'securitypolicyviolation', 'seeked', 
+    'seeking', 'select', 'selectstart', 'stalled', 'submit', 
+    'suspend', 'timeupdate', 'toggle', 'touchcancel', 'touchend', 'touchmove', 
+    'touchstart', 'transitionend', 'volumechange', 'waiting'
+];
+
+function logEvent(event) {
+    console.log(`Event: ${event.type}`);
+    console.log(`Target: ${event.target}`);
+    console.log(event);
+}
+
+allEvents.forEach(eventType => {
+    document.addEventListener(eventType, logEvent, true);
+});
+
+*/
