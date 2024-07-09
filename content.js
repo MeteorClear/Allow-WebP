@@ -207,7 +207,7 @@ async function convertWebP2PNGAndDispatchPaste(file, originalEvent) {
 
     // convert webp to png image
     const pngBlob = await convertImage2PNGBlob(img);
-    copyData(pngBlob);
+    await copyData(pngBlob);
     const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
 
     // create and dispatch event based on original event information and converted image
@@ -215,6 +215,7 @@ async function convertWebP2PNGAndDispatchPaste(file, originalEvent) {
     const newEvent = createNewPasteEvent(dataTransfer, originalEvent);
     dispatchPasteEvent(newEvent, originalEvent.clientX, originalEvent.clientY);
 }
+
 
 function createNewPasteEvent(dataTransfer, originalEvent) {
     console.log("call func : createNewPasteEvent :", dataTransfer);
@@ -225,18 +226,20 @@ function createNewPasteEvent(dataTransfer, originalEvent) {
         clipboardData: dataTransfer,
         composed: true
     });
+    
 
     Object.defineProperty(newEvent, 'srcElement', { value: originalEvent.srcElement });
     Object.defineProperty(newEvent, 'target', { value: originalEvent.target });
+    Object.defineProperty(newEvent, 'currentTarget', { value: originalEvent.currentTarget });
 
-    newEvent.clipboardData.dropEffect = originalEvent.clipboardData ? originalEvent.clipboardData.dropEffect : 'none';
-    newEvent.clipboardData.effectAllowed = originalEvent.clipboardData ? originalEvent.clipboardData.effectAllowed : 'uninitialized';
+    newEvent.clipboardData.dropEffect = 'none';
+    newEvent.clipboardData.effectAllowed = 'uninitialized';
 
     return newEvent;
 }
 
 function dispatchPasteEvent(event, clientX, clientY) {
-    console.log("call func : dispatchDropEvent :", event);
+    console.log("call func : dispatchPasteEvent :", event);
 
     const targetElement = document.elementFromPoint(clientX || 0, clientY || 0);
     if (targetElement) {
@@ -245,12 +248,12 @@ function dispatchPasteEvent(event, clientX, clientY) {
 }
 
 
-function copyData(blob) {
+async function copyData(blob) {
     try {
         const item = new ClipboardItem({ "image/png": blob });
         navigator.clipboard.write([item]); 
         console.log("copy success:");
-    } catch {
+    } catch (error) {
         console.log("copy fail:", error);
     }
         
