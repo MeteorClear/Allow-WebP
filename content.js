@@ -186,9 +186,14 @@ async function handlePaste(event) {
         return;
     }
 
+    // Create a deep copy of the original event
+    const originalEventCopy = deepCopyClipboardEvent(event);
+    console.log("Original Event Copy:", originalEventCopy);
+
     const items = event.clipboardData.items;
     for (let i = 0; i < items.length; i++) {
         console.log("item :", items[i]);
+        console.log("tt", event.clipboardData.items.length);
 
         if (items[i].kind === 'file' && items[i].type === 'image/webp') {
             event.preventDefault();
@@ -201,19 +206,23 @@ async function handlePaste(event) {
 async function convertWebP2PNGAndDispatchPaste(file, originalEvent) {
     console.log("call convert :", file);
 
-    // read and load webp image
+
     const dataURL = await readFile(file);
+
+
     const img = await loadImage(dataURL);
 
-    // convert webp to png image
+
     const pngBlob = await convertImage2PNGBlob(img);
+
+
     await copyData(pngBlob);
+
+
     const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
 
-    // create and dispatch event based on original event information and converted image
-    const dataTransfer = createDataTransfer(pngFile);
-    const newEvent = createNewPasteEvent(dataTransfer, originalEvent);
-    dispatchPasteEvent(newEvent, originalEvent.clientX, originalEvent.clientY);
+
+    updatePasteEventDataTransfer(originalEvent, pngFile);
 }
 
 
@@ -226,7 +235,6 @@ function createNewPasteEvent(dataTransfer, originalEvent) {
         clipboardData: dataTransfer,
         composed: true
     });
-    
 
     Object.defineProperty(newEvent, 'srcElement', { value: originalEvent.srcElement });
     Object.defineProperty(newEvent, 'target', { value: originalEvent.target });
@@ -241,7 +249,7 @@ function createNewPasteEvent(dataTransfer, originalEvent) {
 function dispatchPasteEvent(event, clientX, clientY) {
     console.log("call func : dispatchPasteEvent :", event);
 
-    const targetElement = document.elementFromPoint(clientX || 0, clientY || 0);
+    const targetElement = document.activeElement;
     if (targetElement) {
         targetElement.dispatchEvent(event);
     }
@@ -259,6 +267,61 @@ async function copyData(blob) {
         
 }
 
+function updatePasteEventDataTransfer(originalEvent, pngFile) {
+    console.log("tt", originalEvent.clipboardData.items.length);
+    const items = originalEvent.clipboardData.items;
+
+    console.log("before process", originalEvent.clipboardData.dataTransfer);
+
+    for (let i = 0; i < items.length; i++) {
+        console.log("item :", items[i]);
+    }
+    
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(pngFile);
+
+    const newEvent = createNewPasteEvent(dataTransfer, originalEvent);
+
+    console.log("after process", newEvent.clipboardData);
+    console.log("tt", newEvent.clipboardData.items.length);
+    
+    dispatchPasteEvent(newEvent);
+}
+
+
+
+function deepCopyClipboardEvent(event) {
+    const copy = {
+        clipboardData: {
+            items: [],
+            types: [...event.clipboardData.types],
+            files: [],
+        },
+        bubbles: event.bubbles,
+        cancelable: event.cancelable,
+        composed: event.composed,
+        isTrusted: event.isTrusted,
+        timeStamp: event.timeStamp,
+        type: event.type,
+    };
+
+    for (let i = 0; i < event.clipboardData.items.length; i++) {
+        const item = event.clipboardData.items[i];
+        const itemCopy = {
+            kind: item.kind,
+            type: item.type,
+        };
+
+        if (item.kind === 'file' && typeof item.getAsFile === 'function') {
+            itemCopy.file = item.getAsFile();
+            copy.clipboardData.files.push(itemCopy.file);
+        }
+
+        copy.clipboardData.items.push(itemCopy);
+    }
+
+    return copy;
+}
 
 
 
