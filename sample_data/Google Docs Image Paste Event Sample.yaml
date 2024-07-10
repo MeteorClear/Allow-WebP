@@ -1,0 +1,149 @@
+ClipboardEvent {isTrusted: true, clipboardData: DataTransfer, type: 'paste', target: br, currentTarget: document, …}
+isTrusted: true
+bubbles: true
+cancelBubble: false
+cancelable: true
+clipboardData: DataTransfer
+  dropEffect: "none"
+  effectAllowed: "uninitialized"
+  files: FileList {length: 0}
+  items: DataTransferItemList {length: 0}
+  types: []
+  [[Prototype]]: DataTransfer
+composed: true
+currentTarget: null
+defaultPrevented: false
+eventPhase: 0
+returnValue: true
+srcElement: br
+  accessKey: ""
+  attributeStyleMap: "StylePropertyMap {size: 0}"
+  attributes: "NamedNodeMap {length: 0}"
+  autofocus: false
+  baseURI: "https://docs.google.com/spreadsheets/d/1e97_0CAB9_Z3PhDX3OLFWUTR3wwc-3grnLR6DuH9guQ/edit?gid=0#gid=0"
+  childElementCount: 0
+  childNodes: "NodeList []"
+  children: "HTMLCollection []"
+  classList: "DOMTokenList [value: '']"
+  className: ""
+  clear: ""
+  clientHeight: 0
+  clientLeft: 0
+  clientTop: 0
+  clientWidth: 0
+  contentEditable: "inherit"
+  dataset: "DOMStringMap {}"
+  dir: ""
+  draggable: false
+  elementTiming: ""
+  enterKeyHint: ""
+  hidden: false
+  id: ""
+  inert: false
+  innerHTML: ""
+  innerText: ""
+  inputMode: ""
+  isConnected: true
+  isContentEditable: true
+  lang: ""
+  localName: "br"
+  namespaceURI: "http://www.w3.org/1999/xhtml"
+  nextElementSibling: "br"
+  nextSibling: "br"
+  nodeName: "BR"
+  nodeType: 1
+  nonce: ""
+  offsetHeight: 0
+  offsetLeft: 0
+  offsetParent: "div#waffle-rich-text-editor.cell-input"
+  offsetTop: 0
+  offsetWidth: 0
+  outerHTML: "<br>"
+  outerText: ""
+  ownerDocument: document
+  parentElement: div#waffle-rich-text-editor.cell-input
+  parentNode: div#waffle-rich-text-editor.cell-input
+  part: DOMTokenList [value: '']
+  scrollHeight: 0
+  scrollLeft: 0
+  scrollTop: 0
+  scrollWidth: 0
+  slot: ""
+  spellcheck: false
+  style: CSSStyleDeclaration {accentColor: '', additiveSymbols: '', alignContent: '', alignItems: '', alignSelf: '', …}
+  tabIndex: -1
+  tagName: "BR"
+  textContent: ""
+  title: ""
+  translate: true
+  virtualKeyboardPolicy: ""
+  writingSuggestions: "true"
+  [[Prototype]]: HTMLBRElement
+target: br
+  accessKey: ""
+  attributeStyleMap: StylePropertyMap {size: 0}
+  attributes: NamedNodeMap {length: 0}
+  autocapitalize: ""
+  autofocus: false
+  baseURI: "https://docs.google.com/spreadsheets/d/1e97_0CAB9_Z3PhDX3OLFWUTR3wwc-3grnLR6DuH9guQ/edit?gid=0#gid=0"
+  childElementCount: 0
+  childNodes: NodeList []
+  children: HTMLCollection []
+  classList: DOMTokenList [value: '']
+  className: ""
+  clear: ""
+  clientHeight: 0
+  clientLeft: 0
+  clientTop: 0
+  clientWidth: 0
+  contentEditable: "inherit"
+  dataset: DOMStringMap {}
+  dir: ""
+  draggable: false
+  elementTiming: ""
+  enterKeyHint: ""
+  hidden: false
+  id: ""
+  inert: false
+  innerHTML: ""
+  innerText: ""
+  inputMode: ""
+  isConnected: true
+  isContentEditable: true
+  lang: ""
+  localName: "br"
+  namespaceURI: "http://www.w3.org/1999/xhtml"
+  nextElementSibling: "br"
+  nextSibling: "br"
+  nodeName: "BR"
+  nodeType: 1
+  nonce: ""
+  offsetHeight: 0
+  offsetLeft: 0
+  offsetParent: div#waffle-rich-text-editor.cell-input
+  offsetTop: 0
+  offsetWidth: 0
+  outerHTML: "<br>"
+  outerText: ""
+  ownerDocument: document
+  parentElement: div#waffle-rich-text-editor.cell-input
+  parentNode: div#waffle-rich-text-editor.cell-input
+  part: DOMTokenList [value: '']
+  scrollHeight: 0
+  scrollLeft: 0
+  scrollTop: 0
+  scrollWidth: 0
+  slot: ""
+  spellcheck: false
+  style: CSSStyleDeclaration {accentColor: '', additiveSymbols: '', alignContent: '', alignItems: '', alignSelf: '', …}
+  tabIndex: -1
+  tagName: "BR"
+  textContent: ""
+  title: ""
+  translate: true
+  virtualKeyboardPolicy: ""
+  writingSuggestions: "true"
+  [[Prototype]]: HTMLBRElement
+timeStamp: 15121.5
+type: "paste"
+[[Prototype]]: ClipboardEvent
