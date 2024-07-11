@@ -31,56 +31,40 @@ async function handleEvent(event, eventType) {
         if (items[i].kind === 'file' && items[i].type === 'image/webp') {
             event.preventDefault();
             const file = items[i].getAsFile();
-            if (eventType === 'drop') {
-                await convertWebP2PNGAndDispatchDrop(file, event);
-            } else if (eventType === 'paste') {
-                await convertWebP2PNGAndDispatchPaste(file, event);
-            }
+            await convertAndDispatch(file, event, eventType);
         }
     }
 }
 
 
-/**
- * Convert WebP image to PNG format   
- * And dispatch new drop event.
- *
- * @param {File} file - The original WebP file.
- * @param {DragEvent} originalEvent - The original drop event.
- */
-async function convertWebP2PNGAndDispatchDrop(file, originalEvent) {
-    //console.log("call convert :", file);
+async function convertAndDispatch(file, event, eventType) {
+    console.log("process call:", eventType, file);
 
-    // read and load webp image
     const dataURL = await readFile(file);
+    
     const img = await loadImage(dataURL);
 
-    // convert webp to png image
     const pngBlob = await convertImage2PNGBlob(img);
+
+    if (eventType === 'paste') await copyData(pngBlob);
+
     const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
 
-    // create and dispatch event based on original event information and converted image
     const dataTransfer = createDataTransfer(pngFile);
-    const newEvent = createNewDropEvent(dataTransfer, originalEvent);
-    dispatchDropEvent(newEvent, originalEvent.clientX, originalEvent.clientY);
+
+    const newEvent = ((eventType === 'drop') ? 
+                        createNewDropEvent(dataTransfer, event) : (
+                     (eventType === 'paste') ? 
+                        createNewPasteEvent(dataTransfer, event) : null));
+    
+    if (eventType === 'drop') {
+        dispatchDropEvent(newEvent, event.clientX, event.clientY);
+    } else if (eventType === 'paste') {
+        dispatchPasteEvent(newEvent);
+    }
+    
 }
 
-async function convertWebP2PNGAndDispatchPaste(file, originalEvent) {
-    //console.log("call convert :", file);
-
-    const dataURL = await readFile(file);
-    const img = await loadImage(dataURL);
-
-    const pngBlob = await convertImage2PNGBlob(img);
-
-    await copyData(pngBlob);
-
-    const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
-
-    const dataTransfer = createDataTransfer(pngFile)
-    const newEvent = createNewPasteEvent(dataTransfer, originalEvent);
-    dispatchPasteEvent(newEvent);
-}
 
 /**
  * Read the file and return its data URL.
