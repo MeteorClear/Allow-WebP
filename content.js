@@ -18,10 +18,12 @@ async function handleEvent(event, eventType) {
         return;
     }
 
-    const items = ((eventType === 'drop') ? 
-                        event.dataTransfer.items : (
-                   (eventType === 'paste') ? 
-                        event.clipboardData.items : null));
+    const items = (
+            (eventType === 'drop') ? 
+                event.dataTransfer.items : 
+            (eventType === 'paste') ? 
+                event.clipboardData.items : null
+    );
 
     if (items == null) console.error("Undefined event.");
     
@@ -41,7 +43,7 @@ async function convertAndDispatch(file, event, eventType) {
     console.log("process call:", eventType, file);
 
     const dataURL = await readFile(file);
-    
+
     const img = await loadImage(dataURL);
 
     const pngBlob = await convertImage2PNGBlob(img);
@@ -52,17 +54,14 @@ async function convertAndDispatch(file, event, eventType) {
 
     const dataTransfer = createDataTransfer(pngFile);
 
-    const newEvent = ((eventType === 'drop') ? 
-                        createNewDropEvent(dataTransfer, event) : (
-                     (eventType === 'paste') ? 
-                        createNewPasteEvent(dataTransfer, event) : null));
+    const newEvent = (
+            (eventType === 'drop') ? 
+                createNewDropEvent(dataTransfer, event) : 
+            (eventType === 'paste') ? 
+                createNewPasteEvent(dataTransfer, event) : null
+    );
     
-    if (eventType === 'drop') {
-        dispatchDropEvent(newEvent, event.clientX, event.clientY);
-    } else if (eventType === 'paste') {
-        dispatchPasteEvent(newEvent);
-    }
-    
+    dispatchNewEvent(newEvent, eventType);
 }
 
 
@@ -132,7 +131,7 @@ async function copyData(blob) {
         navigator.clipboard.write([item]); 
         //console.log("copy success:");
     } catch (error) {
-        console.log("copy fail:", error);
+        console.error("copy fail:", error);
     }
 }
 
@@ -204,31 +203,22 @@ function createNewPasteEvent(dataTransfer, originalEvent) {
 }
 
 
-/**
- * Dispatch the drop event at the specified coordinates.
- *
- * @param {DragEvent} event - The drop event to dispatch.
- * @param {number} clientX - The client X coordinate for the drop event.
- * @param {number} clientY - The client Y coordinate for the drop event.
- */
-function dispatchDropEvent(event, clientX, clientY) {
-    //console.log("call func : dispatchDropEvent :", event);
+function dispatchNewEvent(event, eventType) {
+    //console.log("call func : dispatchNewEvent :", event);
 
-    const targetElement = document.elementFromPoint(clientX, clientY);
+    const targetElement = (
+            (eventType === 'drop') ? 
+                document.elementFromPoint(event.clientX, event.clientY) :
+            (eventType === 'paste' ? 
+                document.activeElement : null
+    ));
+
     if (targetElement) {
         targetElement.dispatchEvent(event);
+    } else {
+        console.error("Undefined event.");
     }
 }
-
-function dispatchPasteEvent(event) {
-    //console.log("call func : dispatchPasteEvent :", event);
-
-    const targetElement = document.activeElement;
-    if (targetElement) {
-        targetElement.dispatchEvent(event);
-    }
-}
-
 
 
 /*
