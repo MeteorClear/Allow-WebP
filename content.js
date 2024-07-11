@@ -176,8 +176,6 @@ function dispatchDropEvent(event, clientX, clientY) {
 }
 
 
-
-
 async function handlePaste(event) {
     console.log("paste event :", event, typeof(event));
 
@@ -186,14 +184,9 @@ async function handlePaste(event) {
         return;
     }
 
-    // Create a deep copy of the original event
-    const originalEventCopy = deepCopyClipboardEvent(event);
-    console.log("Original Event Copy:", originalEventCopy);
-
     const items = event.clipboardData.items;
     for (let i = 0; i < items.length; i++) {
-        console.log("item :", items[i]);
-        console.log("tt", event.clipboardData.items.length);
+        //console.log("item :", items[i]);
 
         if (items[i].kind === 'file' && items[i].type === 'image/webp') {
             event.preventDefault();
@@ -204,20 +197,14 @@ async function handlePaste(event) {
 }
 
 async function convertWebP2PNGAndDispatchPaste(file, originalEvent) {
-    console.log("call convert :", file);
-
+    //console.log("call convert :", file);
 
     const dataURL = await readFile(file);
-
-
     const img = await loadImage(dataURL);
-
 
     const pngBlob = await convertImage2PNGBlob(img);
 
-
     await copyData(pngBlob);
-
 
     const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
 
@@ -227,7 +214,7 @@ async function convertWebP2PNGAndDispatchPaste(file, originalEvent) {
 
 
 function createNewPasteEvent(dataTransfer, originalEvent) {
-    console.log("call func : createNewPasteEvent :", dataTransfer);
+    //console.log("call func : createNewPasteEvent :", dataTransfer);
 
     const newEvent = new ClipboardEvent('paste', {
         bubbles: true,
@@ -246,8 +233,8 @@ function createNewPasteEvent(dataTransfer, originalEvent) {
     return newEvent;
 }
 
-function dispatchPasteEvent(event, clientX, clientY) {
-    console.log("call func : dispatchPasteEvent :", event);
+function dispatchPasteEvent(event) {
+    //console.log("call func : dispatchPasteEvent :", event);
 
     const targetElement = document.activeElement;
     if (targetElement) {
@@ -257,70 +244,25 @@ function dispatchPasteEvent(event, clientX, clientY) {
 
 
 async function copyData(blob) {
+    //console.log("call func : copyData :", blob);
     try {
         const item = new ClipboardItem({ "image/png": blob });
         navigator.clipboard.write([item]); 
-        console.log("copy success:");
+        //console.log("copy success:");
     } catch (error) {
         console.log("copy fail:", error);
     }
-        
 }
 
 function updatePasteEventDataTransfer(originalEvent, pngFile) {
-    console.log("tt", originalEvent.clipboardData.items.length);
     const items = originalEvent.clipboardData.items;
-
-    console.log("before process", originalEvent.clipboardData.dataTransfer);
-
-    for (let i = 0; i < items.length; i++) {
-        console.log("item :", items[i]);
-    }
     
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(pngFile);
 
     const newEvent = createNewPasteEvent(dataTransfer, originalEvent);
-
-    console.log("after process", newEvent.clipboardData);
-    console.log("tt", newEvent.clipboardData.items.length);
     
     dispatchPasteEvent(newEvent);
-}
-
-
-
-function deepCopyClipboardEvent(event) {
-    const copy = {
-        clipboardData: {
-            items: [],
-            types: [...event.clipboardData.types],
-            files: [],
-        },
-        bubbles: event.bubbles,
-        cancelable: event.cancelable,
-        composed: event.composed,
-        isTrusted: event.isTrusted,
-        timeStamp: event.timeStamp,
-        type: event.type,
-    };
-
-    for (let i = 0; i < event.clipboardData.items.length; i++) {
-        const item = event.clipboardData.items[i];
-        const itemCopy = {
-            kind: item.kind,
-            type: item.type,
-        };
-
-        if (item.kind === 'file' && typeof item.getAsFile === 'function') {
-            itemCopy.file = item.getAsFile();
-            copy.clipboardData.files.push(itemCopy.file);
-        }
-
-        copy.clipboardData.items.push(itemCopy);
-    }
-
-    return copy;
 }
 
 
