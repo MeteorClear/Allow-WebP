@@ -2,46 +2,40 @@
 
 
 // Register event listeners
-document.addEventListener('drop', handleDrop);
-document.addEventListener('paste', handlePaste);
+document.addEventListener('drop', (event) => {
+    handleEvent(event, 'drop');
+});
+document.addEventListener('paste', (event) => {
+    handleEvent(event, 'paste');
+});
 
 
-/**
- * Handle the drop event and process the dropped items.
- *
- * @param {DragEvent} event - The drop event object.
- */
-async function handleDrop(event) {
-    console.log("drop event :", event, typeof(event));
+async function handleEvent(event, eventType) {
+    console.log("event occurred :", eventType, event);
 
-    const items = event.dataTransfer.items;
-    for (let i = 0; i < items.length; i++) {
-        //console.log("item :", items[i]);
-
-        if (items[i].kind === 'file' && items[i].type === 'image/webp') {
-            event.preventDefault();
-            const file = items[i].getAsFile();
-            await convertWebP2PNGAndDispatchDrop(file, event);
-        }
-    }
-}
-
-async function handlePaste(event) {
-    console.log("paste event :", event, typeof(event));
-
-    if (!event.clipboardData) {
+    if (eventType === 'paste' && !event.clipboardData) {
         console.error("Clipboard data is null or undefined.");
         return;
     }
 
-    const items = event.clipboardData.items;
+    const items = ((eventType === 'drop') ? 
+                        event.dataTransfer.items : (
+                   (eventType === 'paste') ? 
+                        event.clipboardData.items : null));
+
+    if (items == null) console.error("Undefined event.");
+    
     for (let i = 0; i < items.length; i++) {
         //console.log("item :", items[i]);
 
         if (items[i].kind === 'file' && items[i].type === 'image/webp') {
             event.preventDefault();
             const file = items[i].getAsFile();
-            await convertWebP2PNGAndDispatchPaste(file, event);
+            if (eventType === 'drop') {
+                await convertWebP2PNGAndDispatchDrop(file, event);
+            } else if (eventType === 'paste') {
+                await convertWebP2PNGAndDispatchPaste(file, event);
+            }
         }
     }
 }
