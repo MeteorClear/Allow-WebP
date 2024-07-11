@@ -26,6 +26,26 @@ async function handleDrop(event) {
     }
 }
 
+async function handlePaste(event) {
+    console.log("paste event :", event, typeof(event));
+
+    if (!event.clipboardData) {
+        console.error("Clipboard data is null or undefined.");
+        return;
+    }
+
+    const items = event.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+        //console.log("item :", items[i]);
+
+        if (items[i].kind === 'file' && items[i].type === 'image/webp') {
+            event.preventDefault();
+            const file = items[i].getAsFile();
+            await convertWebP2PNGAndDispatchPaste(file, event);
+        }
+    }
+}
+
 
 /**
  * Convert WebP image to PNG format   
@@ -51,6 +71,22 @@ async function convertWebP2PNGAndDispatchDrop(file, originalEvent) {
     dispatchDropEvent(newEvent, originalEvent.clientX, originalEvent.clientY);
 }
 
+async function convertWebP2PNGAndDispatchPaste(file, originalEvent) {
+    //console.log("call convert :", file);
+
+    const dataURL = await readFile(file);
+    const img = await loadImage(dataURL);
+
+    const pngBlob = await convertImage2PNGBlob(img);
+
+    await copyData(pngBlob);
+
+    const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
+
+    const dataTransfer = createDataTransfer(pngFile)
+    const newEvent = createNewPasteEvent(dataTransfer, originalEvent);
+    dispatchPasteEvent(newEvent);
+}
 
 /**
  * Read the file and return its data URL.
@@ -111,6 +147,17 @@ function convertImage2PNGBlob(image) {
     });
 }
 
+async function copyData(blob) {
+    //console.log("call func : copyData :", blob);
+    try {
+        const item = new ClipboardItem({ "image/png": blob });
+        navigator.clipboard.write([item]); 
+        //console.log("copy success:");
+    } catch (error) {
+        console.log("copy fail:", error);
+    }
+}
+
 
 /**
  * Create the DataTransfer object containing the given file.
@@ -158,64 +205,6 @@ function createNewDropEvent(dataTransfer, originalEvent) {
     return newEvent;
 }
 
-
-/**
- * Dispatch the drop event at the specified coordinates.
- *
- * @param {DragEvent} event - The drop event to dispatch.
- * @param {number} clientX - The client X coordinate for the drop event.
- * @param {number} clientY - The client Y coordinate for the drop event.
- */
-function dispatchDropEvent(event, clientX, clientY) {
-    //console.log("call func : dispatchDropEvent :", event);
-
-    const targetElement = document.elementFromPoint(clientX, clientY);
-    if (targetElement) {
-        targetElement.dispatchEvent(event);
-    }
-}
-
-
-async function handlePaste(event) {
-    console.log("paste event :", event, typeof(event));
-
-    if (!event.clipboardData) {
-        console.error("Clipboard data is null or undefined.");
-        return;
-    }
-
-    const items = event.clipboardData.items;
-    for (let i = 0; i < items.length; i++) {
-        //console.log("item :", items[i]);
-
-        if (items[i].kind === 'file' && items[i].type === 'image/webp') {
-            event.preventDefault();
-            const file = items[i].getAsFile();
-            await convertWebP2PNGAndDispatchPaste(file, event);
-        }
-    }
-}
-
-async function convertWebP2PNGAndDispatchPaste(file, originalEvent) {
-    //console.log("call convert :", file);
-
-    const dataURL = await readFile(file);
-    const img = await loadImage(dataURL);
-
-    const pngBlob = await convertImage2PNGBlob(img);
-
-    await copyData(pngBlob);
-
-    const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
-
-    const dataTransfer = createDataTransfer(pngFile)
-
-    const newEvent = createNewPasteEvent(dataTransfer, originalEvent);
-    
-    dispatchPasteEvent(newEvent);
-}
-
-
 function createNewPasteEvent(dataTransfer, originalEvent) {
     //console.log("call func : createNewPasteEvent :", dataTransfer);
 
@@ -236,6 +225,23 @@ function createNewPasteEvent(dataTransfer, originalEvent) {
     return newEvent;
 }
 
+
+/**
+ * Dispatch the drop event at the specified coordinates.
+ *
+ * @param {DragEvent} event - The drop event to dispatch.
+ * @param {number} clientX - The client X coordinate for the drop event.
+ * @param {number} clientY - The client Y coordinate for the drop event.
+ */
+function dispatchDropEvent(event, clientX, clientY) {
+    //console.log("call func : dispatchDropEvent :", event);
+
+    const targetElement = document.elementFromPoint(clientX, clientY);
+    if (targetElement) {
+        targetElement.dispatchEvent(event);
+    }
+}
+
 function dispatchPasteEvent(event) {
     //console.log("call func : dispatchPasteEvent :", event);
 
@@ -245,16 +251,6 @@ function dispatchPasteEvent(event) {
     }
 }
 
-async function copyData(blob) {
-    //console.log("call func : copyData :", blob);
-    try {
-        const item = new ClipboardItem({ "image/png": blob });
-        navigator.clipboard.write([item]); 
-        //console.log("copy success:");
-    } catch (error) {
-        console.log("copy fail:", error);
-    }
-}
 
 
 /*
