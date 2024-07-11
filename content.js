@@ -2,53 +2,66 @@
 
 
 // Register event listeners
-document.addEventListener('drop', handleDrop);
-document.addEventListener('paste', handlePaste);
+document.addEventListener('drop', (event) => {
+    handleEvent(event, 'drop');
+});
+document.addEventListener('paste', (event) => {
+    handleEvent(event, 'paste');
+});
 
 
-/**
- * Handle the drop event and process the dropped items.
- *
- * @param {DragEvent} event - The drop event object.
- */
-async function handleDrop(event) {
-    console.log("drop event :", event, typeof(event));
+async function handleEvent(event, eventType) {
+    console.log("event occurred :", eventType, event);
 
-    const items = event.dataTransfer.items;
+    if (eventType === 'paste' && !event.clipboardData) {
+        console.error("Clipboard data is null or undefined.");
+        return;
+    }
+
+    const items = (
+            (eventType === 'drop') ? 
+                event.dataTransfer.items : 
+            (eventType === 'paste') ? 
+                event.clipboardData.items : null
+    );
+
+    if (items == null) console.error("Undefined event.");
+    
     for (let i = 0; i < items.length; i++) {
         //console.log("item :", items[i]);
 
         if (items[i].kind === 'file' && items[i].type === 'image/webp') {
             event.preventDefault();
             const file = items[i].getAsFile();
-            await convertWebP2PNGAndDispatchDrop(file, event);
+            await convertAndDispatch(file, event, eventType);
         }
     }
 }
 
 
-/**
- * Convert WebP image to PNG format   
- * And dispatch new drop event.
- *
- * @param {File} file - The original WebP file.
- * @param {DragEvent} originalEvent - The original drop event.
- */
-async function convertWebP2PNGAndDispatchDrop(file, originalEvent) {
-    //console.log("call convert :", file);
+async function convertAndDispatch(file, event, eventType) {
+    console.log("process call:", eventType, file);
 
-    // read and load webp image
     const dataURL = await readFile(file);
+
     const img = await loadImage(dataURL);
 
-    // convert webp to png image
     const pngBlob = await convertImage2PNGBlob(img);
+
+    if (eventType === 'paste') await copyData(pngBlob);
+
     const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
 
-    // create and dispatch event based on original event information and converted image
     const dataTransfer = createDataTransfer(pngFile);
-    const newEvent = createNewDropEvent(dataTransfer, originalEvent);
-    dispatchDropEvent(newEvent, originalEvent.clientX, originalEvent.clientY);
+
+    const newEvent = (
+            (eventType === 'drop') ? 
+                createNewDropEvent(dataTransfer, event) : 
+            (eventType === 'paste') ? 
+                createNewPasteEvent(dataTransfer, event) : null
+    );
+    
+    dispatchNewEvent(newEvent, eventType);
 }
 
 
@@ -111,6 +124,17 @@ function convertImage2PNGBlob(image) {
     });
 }
 
+async function copyData(blob) {
+    //console.log("call func : copyData :", blob);
+    try {
+        const item = new ClipboardItem({ "image/png": blob });
+        navigator.clipboard.write([item]); 
+        //console.log("copy success:");
+    } catch (error) {
+        console.error("copy fail:", error);
+    }
+}
+
 
 /**
  * Create the DataTransfer object containing the given file.
@@ -158,76 +182,8 @@ function createNewDropEvent(dataTransfer, originalEvent) {
     return newEvent;
 }
 
-
-/**
- * Dispatch the drop event at the specified coordinates.
- *
- * @param {DragEvent} event - The drop event to dispatch.
- * @param {number} clientX - The client X coordinate for the drop event.
- * @param {number} clientY - The client Y coordinate for the drop event.
- */
-function dispatchDropEvent(event, clientX, clientY) {
-    //console.log("call func : dispatchDropEvent :", event);
-
-    const targetElement = document.elementFromPoint(clientX, clientY);
-    if (targetElement) {
-        targetElement.dispatchEvent(event);
-    }
-}
-
-
-
-
-async function handlePaste(event) {
-    console.log("paste event :", event, typeof(event));
-
-    if (!event.clipboardData) {
-        console.error("Clipboard data is null or undefined.");
-        return;
-    }
-
-    // Create a deep copy of the original event
-    const originalEventCopy = deepCopyClipboardEvent(event);
-    console.log("Original Event Copy:", originalEventCopy);
-
-    const items = event.clipboardData.items;
-    for (let i = 0; i < items.length; i++) {
-        console.log("item :", items[i]);
-        console.log("tt", event.clipboardData.items.length);
-
-        if (items[i].kind === 'file' && items[i].type === 'image/webp') {
-            event.preventDefault();
-            const file = items[i].getAsFile();
-            await convertWebP2PNGAndDispatchPaste(file, event);
-        }
-    }
-}
-
-async function convertWebP2PNGAndDispatchPaste(file, originalEvent) {
-    console.log("call convert :", file);
-
-
-    const dataURL = await readFile(file);
-
-
-    const img = await loadImage(dataURL);
-
-
-    const pngBlob = await convertImage2PNGBlob(img);
-
-
-    await copyData(pngBlob);
-
-
-    const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
-
-
-    updatePasteEventDataTransfer(originalEvent, pngFile);
-}
-
-
 function createNewPasteEvent(dataTransfer, originalEvent) {
-    console.log("call func : createNewPasteEvent :", dataTransfer);
+    //console.log("call func : createNewPasteEvent :", dataTransfer);
 
     const newEvent = new ClipboardEvent('paste', {
         bubbles: true,
@@ -246,83 +202,23 @@ function createNewPasteEvent(dataTransfer, originalEvent) {
     return newEvent;
 }
 
-function dispatchPasteEvent(event, clientX, clientY) {
-    console.log("call func : dispatchPasteEvent :", event);
 
-    const targetElement = document.activeElement;
+function dispatchNewEvent(event, eventType) {
+    //console.log("call func : dispatchNewEvent :", event);
+
+    const targetElement = (
+            (eventType === 'drop') ? 
+                document.elementFromPoint(event.clientX, event.clientY) :
+            (eventType === 'paste' ? 
+                document.activeElement : null
+    ));
+
     if (targetElement) {
         targetElement.dispatchEvent(event);
+    } else {
+        console.error("Undefined event.");
     }
 }
-
-
-async function copyData(blob) {
-    try {
-        const item = new ClipboardItem({ "image/png": blob });
-        navigator.clipboard.write([item]); 
-        console.log("copy success:");
-    } catch (error) {
-        console.log("copy fail:", error);
-    }
-        
-}
-
-function updatePasteEventDataTransfer(originalEvent, pngFile) {
-    console.log("tt", originalEvent.clipboardData.items.length);
-    const items = originalEvent.clipboardData.items;
-
-    console.log("before process", originalEvent.clipboardData.dataTransfer);
-
-    for (let i = 0; i < items.length; i++) {
-        console.log("item :", items[i]);
-    }
-    
-    const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(pngFile);
-
-    const newEvent = createNewPasteEvent(dataTransfer, originalEvent);
-
-    console.log("after process", newEvent.clipboardData);
-    console.log("tt", newEvent.clipboardData.items.length);
-    
-    dispatchPasteEvent(newEvent);
-}
-
-
-
-function deepCopyClipboardEvent(event) {
-    const copy = {
-        clipboardData: {
-            items: [],
-            types: [...event.clipboardData.types],
-            files: [],
-        },
-        bubbles: event.bubbles,
-        cancelable: event.cancelable,
-        composed: event.composed,
-        isTrusted: event.isTrusted,
-        timeStamp: event.timeStamp,
-        type: event.type,
-    };
-
-    for (let i = 0; i < event.clipboardData.items.length; i++) {
-        const item = event.clipboardData.items[i];
-        const itemCopy = {
-            kind: item.kind,
-            type: item.type,
-        };
-
-        if (item.kind === 'file' && typeof item.getAsFile === 'function') {
-            itemCopy.file = item.getAsFile();
-            copy.clipboardData.files.push(itemCopy.file);
-        }
-
-        copy.clipboardData.items.push(itemCopy);
-    }
-
-    return copy;
-}
-
 
 
 /*
