@@ -208,8 +208,11 @@ async function convertWebP2PNGAndDispatchPaste(file, originalEvent) {
 
     const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
 
+    const dataTransfer = createDataTransfer(pngFile)
 
-    updatePasteEventDataTransfer(originalEvent, pngFile);
+    const newEvent = createNewPasteEvent(dataTransfer, originalEvent);
+    
+    dispatchPasteEvent(newEvent);
 }
 
 
@@ -242,7 +245,6 @@ function dispatchPasteEvent(event) {
     }
 }
 
-
 async function copyData(blob) {
     //console.log("call func : copyData :", blob);
     try {
@@ -253,18 +255,6 @@ async function copyData(blob) {
         console.log("copy fail:", error);
     }
 }
-
-function updatePasteEventDataTransfer(originalEvent, pngFile) {
-    const items = originalEvent.clipboardData.items;
-    
-    const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(pngFile);
-
-    const newEvent = createNewPasteEvent(dataTransfer, originalEvent);
-    
-    dispatchPasteEvent(newEvent);
-}
-
 
 
 /*
