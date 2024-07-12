@@ -2,32 +2,27 @@
 
 
 // Register event listeners
-document.addEventListener('drop', (event) => {
-    handleEvent(event, 'drop');
-});
-document.addEventListener('paste', (event) => {
-    handleEvent(event, 'paste');
-});
+document.addEventListener('drop', handleEvent);
+document.addEventListener('paste', handleEvent);
 
 
 /**
  * Handle the occurred events.
  *
  * @param {Event} event - The event object.
- * @param {string} eventType - The type of the event ('drop' or 'paste').
  */
-async function handleEvent(event, eventType) {
-    console.log("event occurred :", eventType, event, event.type);
+async function handleEvent(event) {
+    console.log("event occurred :", event.type, event);
 
-    if (eventType === 'paste' && !event.clipboardData) {
+    if (event.type === 'paste' && !event.clipboardData) {
         console.error("Clipboard data is null or undefined.");
         return;
     }
 
     const items = (
-            (eventType === 'drop') ? 
+            (event.type === 'drop') ? 
                 event.dataTransfer.items : 
-            (eventType === 'paste') ? 
+            (event.type === 'paste') ? 
                 event.clipboardData.items : null
     );
 
@@ -40,7 +35,7 @@ async function handleEvent(event, eventType) {
         if (items[i].kind === 'file' && items[i].type === 'image/webp') {
             event.preventDefault();
             const file = items[i].getAsFile();
-            await convertAndDispatch(file, event, eventType);
+            await convertAndDispatch(file, event);
         }
     }
 }
@@ -51,30 +46,29 @@ async function handleEvent(event, eventType) {
  *
  * @param {File} file - The file to process.
  * @param {Event} event - The original event object.
- * @param {string} eventType - The type of the event ('drop' or 'paste').
  */
-async function convertAndDispatch(file, event, eventType) {
-    console.log("process call:", eventType, file);
+async function convertAndDispatch(file, event) {
+    console.log("process call:", event.type, file);
 
     const dataURL = await readFile(file);
     const img = await loadImage(dataURL);
 
     const pngBlob = await convertImage2PNGBlob(img);
 
-    if (eventType === 'paste') await copyData(pngBlob);
+    if (event.type === 'paste') await copyData(pngBlob);
 
     const pngFile = new File([pngBlob], file.name.replace(/\.webp$/, '.png'), { type: 'image/png' });
 
     const dataTransfer = createDataTransfer(pngFile);
     const newEvent = (
-            (eventType === 'drop') ? 
+            (event.type === 'drop') ? 
                 createNewDropEvent(dataTransfer, event) : 
-            (eventType === 'paste') ? 
+            (event.type === 'paste') ? 
                 createNewPasteEvent(dataTransfer, event) : null
     );
     
     if (newEvent){
-        dispatchNewEvent(newEvent, eventType);
+        dispatchNewEvent(newEvent);
     }
     
 }
@@ -223,13 +217,12 @@ function createNewPasteEvent(dataTransfer, originalEvent) {
  * Dispatch the new event to the target element.
  *
  * @param {Event} event - The event to dispatch.
- * @param {string} eventType - The type of the event ('drop' or 'paste').
  */
-function dispatchNewEvent(event, eventType) {
+function dispatchNewEvent(event) {
     const targetElement = (
-            (eventType === 'drop') ? 
+            (event.type === 'drop') ? 
                 document.elementFromPoint(event.clientX, event.clientY) :
-            (eventType === 'paste' ? 
+            (event.type === 'paste' ? 
                 document.activeElement : null
     ));
 
